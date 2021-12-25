@@ -30,7 +30,7 @@ module.exports = {
             const pokemonInfoEmbed = new MessageEmbed()
                 .setColor('GREY')
                 .setTitle(capitalizeText(pokemonData.data.name))
-                .setURL('https://discord.js.org/')
+                .setURL(getBulbapediaURL(pokemonName))
                 .setAuthor('National Dex # : ' + pokemonData.data.id)
                 .setDescription(getFlavorText(speciesData))
                 .setThumbnail(pokemonData.data.sprites.front_default)
@@ -44,7 +44,7 @@ module.exports = {
                 .setTimestamp()
                 .setFooter('via PokeAPI v2', 'https://i.imgur.com/AfFp7pu.png');
             
-            interaction.reply({ embeds: [pokemonInfoEmbed], ephemeral: true });
+            interaction.reply({ embeds: [pokemonInfoEmbed], ephemeral: false });
 
         } catch(err) {
             interaction.reply({content: 'Pokemon not found', ephemeral: true});
@@ -52,7 +52,6 @@ module.exports = {
         }
     },
 };
-
 
 const getPokemonName = (interaction) => {
     let name;
@@ -62,6 +61,24 @@ const getPokemonName = (interaction) => {
         name = interaction.options.get('string').value;
     }
     return name.toLowerCase();
+};
+
+const getBulbapediaURL = (pokemonName) => {
+    let urlAttachment = pokemonName.toLowerCase();
+    if(urlAttachment.includes('-')) {
+        urlAttachment = urlAttachment.slice(0,urlAttachment.indexOf('-'));
+    }
+    return `https://bulbapedia.bulbagarden.net/wiki/${urlAttachment}`;
+}
+
+const getFlavorText = (speciesData) => {
+    let lang = '';
+    let rng;
+    while(lang !== 'en') {
+        rng = getRandomNum(speciesData.data.flavor_text_entries.length-1);
+        lang = speciesData.data.flavor_text_entries[rng].language.name;
+    }
+    return speciesData.data.flavor_text_entries[rng].flavor_text;
 };
 
 const getTypes = (data) => {
@@ -74,15 +91,7 @@ const getTypes = (data) => {
     return typesString
 };
 
-const getFlavorText = (speciesData) => {
-    let lang = '';
-    let rng;
-    while(lang !== 'en') {
-        rng = getRandomNum(speciesData.data.flavor_text_entries.length-1);
-        lang = speciesData.data.flavor_text_entries[rng].language.name;
-    }
-    return speciesData.data.flavor_text_entries[rng].flavor_text;
-};
+
 
 const capitalizeText = (text) => {
     if(typeof(text) === 'undefined') {
