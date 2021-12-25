@@ -18,5 +18,4 @@ module.exports = {
             interaction.reply(`Joining ${interaction.member.voice.channel}`);
         }
     },
-
 };

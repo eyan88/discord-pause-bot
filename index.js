@@ -1,12 +1,11 @@
 const fs = require('fs');
 const { token } = require('./config.json');
 const { Client, Collection, Intents } = require('discord.js');
-const { joinVoiceChannel } = require('@discordjs/voice');
 
 // new client instance
 const client = new Client({ intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_VOICE_STATES]});
 
-// Dynamically retrieves command files in commands folder
+// Dynamically retrieve command files in commands folder
 client.commands = new Collection();
 const commandFiles = fs.readdirSync('./commands').filter(file => file.endsWith('.js'));
 
@@ -15,7 +14,7 @@ for(const file of commandFiles) {
     client.commands.set(command.data.name, command);
 }
 
-// Dynamically retrieves event files in events folder
+// Dynamically retrieve event files in events folder
 const eventFiles = fs.readdirSync('./events').filter(file => file.endsWith('.js'));
 
 for(const file of eventFiles) {
@@ -31,7 +30,7 @@ for(const file of eventFiles) {
     console.log(`Logged in as ${client.user.tag}!`)
 });*/
 
-client.on('interactionCreate', async interaction => {
+/*client.on('interactionCreate', async interaction => {
     if(!interaction.isCommand()) return;
 
     const command = client.commands.get(interaction.commandName);
@@ -44,6 +43,6 @@ client.on('interactionCreate', async interaction => {
         console.error(error);
         await interaction.reply({ content: 'There was an error while executing this command!', ephemeral: true });
     }
-});
+});*/
 
 client.login(token);
