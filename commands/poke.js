@@ -32,7 +32,7 @@ module.exports = {
             
             // embed info
             const pokemonInfoEmbed = new MessageEmbed()
-                .setColor('GREY')
+                .setColor(speciesData.data.color.name.toUpperCase())
                 .setTitle(capitalizeText(pokemonData.data.name))
                 .setURL(getBulbapediaURL(pokemonName))
                 .setAuthor('National Dex # : ' + pokemonData.data.id)
