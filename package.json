@@ -1,5 +1,5 @@
 {
-  "name": "discord-clip-bot",
+  "name": "discord-poke-bot",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
@@ -20,5 +20,8 @@
     "ffmpeg-static": "^4.4.0",
     "libsodium-wrappers": "^0.7.9",
     "tweetnacl": "^1.0.3"
+  },
+  "engines": {
+    "node": "16.13.1"
   }
 }
