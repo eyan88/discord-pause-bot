@@ -1,6 +1,6 @@
 const fs = require('fs');
 const { SlashCommandBuilder } = require('@discordjs/builders');
-const { MessageEmbed, Options } = require('discord.js');
+const { MessageEmbed } = require('discord.js');
 const axios = require('axios');
 
 module.exports = {
@@ -13,6 +13,7 @@ module.exports = {
                 .setRequired(false)),
     async execute(interaction) {
         let pokemonName = getPokemonName(interaction);
+        console.log(pokemonName);
 
         try {
             let pokemon, pokemonSpecies, pokemonData, speciesData;
