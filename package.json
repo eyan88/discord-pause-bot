@@ -18,6 +18,7 @@
     "discord.js": "^13.3.1",
     "dotenv": "^10.0.0",
     "ffmpeg-static": "^4.4.0",
+    "follow-redirects": "^1.14.7",
     "libsodium-wrappers": "^0.7.9",
     "tweetnacl": "^1.0.3"
   },
