@@ -27,6 +27,7 @@ for(const file of eventFiles) {
     }
 }
 
+// more edits
 /*client.on('ready', () => {
     console.log(`Logged in as ${client.user.tag}!`)
 });*/
