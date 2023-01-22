@@ -1,64 +1,59 @@
 const fs = require('fs');
-const { SlashCommandBuilder, EmbedBuilder } = require('@discordjs/builders');
-const { type } = require('os');
-const { WebhookClient } = require('discord.js');
+const { SlashCommandBuilder } = require('@discordjs/builders');
+const { MessageEmbed } = require('discord.js');
+const axios = require('axios');
 
 module.exports = {
     data: new SlashCommandBuilder()
-        .setName('poke')
-        .setDescription('Returns a random Pokemon or specified Pokemon if provided')
-        .addStringOption(option =>
+        .setName('bad')
+        .setDescription('Random Pokemon')
+        .addStringOption(option => 
             option.setName('string')
                 .setDescription('Pokemon Name or ID')
                 .setRequired(false)),
     async execute(interaction) {
         let pokemonName = getPokemonName(interaction);
         console.log(pokemonName);
+
         try {
             let pokemon, pokemonSpecies, pokemonData, speciesData;
 
             // Behavior when given Pokemon with alternate forms
             if(typeof(pokemonName) !== 'number' && pokemonName.includes('-')) {
                 pokemon = `https://pokeapi.co/api/v2/pokemon/${pokemonName}`;
-                pokemonData = await fetch(pokemon);
-                pokemonData = await pokemonData.json();
-
-                speciesData = await fetch(pokemonData.data.species.url);
-                speciesData = await speciesData.json();
-                
+                pokemonData = await axios.get(pokemon);
+                speciesData = await axios.get(pokemonData.data.species.url);
                 pokemonName = pokemonData.data.name;
             } else {
                 pokemonSpecies = `https://pokeapi.co/api/v2/pokemon-species/${pokemonName}`;
-                speciesData = await fetch(pokemonSpecies);
-                speciesData = await speciesData.json();
-
-                pokemonData = speciesData.varieties[0].pokemon.url;
-                pokemonData = await fetch(pokemonData)
-                pokemonData = await pokemonData.json();
-                pokemonName = pokemonData.name;
+                speciesData = await axios.get(pokemonSpecies);
+                pokemonData = await axios.get(speciesData.data.varieties[0].pokemon.url);
+                pokemonName = pokemonData.data.name;
             }
             
             // embed info
-            const pokemonInfoEmbed = new EmbedBuilder()
-                .setColor(0xFFFFFF)
-                .setTitle(capitalizeText(pokemonData.name))
+            const pokemonInfoEmbed = new MessageEmbed()
+                .setColor(speciesData.data.color.name.toUpperCase())
+                .setTitle(capitalizeText(pokemonData.data.name))
                 .setURL(getBulbapediaURL(pokemonName))
-                .setAuthor({name: 'National Dex # : ' + pokemonData.id, iconURL: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/poke-ball.png'})
+                .setAuthor('National Dex # : ' + pokemonData.data.id)
                 .setDescription(getFlavorText(speciesData))
-                .setThumbnail(pokemonData.sprites.versions['generation-v']['black-white'].animated.front_default)
+                .setThumbnail(pokemonData.data.sprites.front_default)
                 .addFields(
                     { name: '\u200B', value: '\u200B' },
                     { name: 'Regular field title', value: 'Some value here' },
-                    { name: 'Type', value: getTypes(pokemonData), inline: true },
-                    { name: 'Secondary Type', value: 'text', inline: true },
+                    { name: 'Type', value: getTypes(pokemonData.data), inline: true },
+                    { name: 'Inline field title', value: 'Some value', inline: true },
                 )
+                .addField('Inline field title', 'Some value here', true)
                 .setTimestamp()
-                .setFooter({text:'via PokeAPI v2', iconURL: 'https://i.imgur.com/AfFp7pu.png'});
+                .setFooter('via PokeAPI v2', 'https://i.imgur.com/AfFp7pu.png');
             
             interaction.reply({ embeds: [pokemonInfoEmbed], ephemeral: false });
 
-        } catch (err) {
-            await interaction.reply({content: 'Invalid pokemon returned, try again', ephemeral: true});
+        } catch(err) {
+            interaction.reply({content: 'Pokemon not found', ephemeral: true});
+            return;
         }
     },
 };
@@ -66,7 +61,7 @@ module.exports = {
 // Returns a pokemon name or ID, if name/ID isn't provided, selects a random ID
 const getPokemonName = (interaction) => {
     let name;
-    if (!interaction.options.get('string')) {
+    if(!interaction.options.get('string')) {
         name = getRandomNum(898);
     } else {
         name = interaction.options.get('string').value;
@@ -77,10 +72,9 @@ const getPokemonName = (interaction) => {
 
 // Gets Bulbapedia Wiki URL for pokemonName parameter
 const getBulbapediaURL = (pokemonName) => {
-    console.log(pokemonName);
     let urlAttachment = pokemonName.toLowerCase();
-    if (urlAttachment.includes('-')) {
-        urlAttachment = urlAttachment.slice(0, urlAttachment.indexOf('-'));
+    if(urlAttachment.includes('-')) {
+        urlAttachment = urlAttachment.slice(0,urlAttachment.indexOf('-'));
     }
     return `https://bulbapedia.bulbagarden.net/wiki/${urlAttachment}`;
 }
@@ -89,11 +83,11 @@ const getBulbapediaURL = (pokemonName) => {
 const getFlavorText = (speciesData) => {
     let lang = '';
     let rng;
-    while (lang !== 'en') {
-        rng = getRandomNum(speciesData.flavor_text_entries.length - 1);
-        lang = speciesData.flavor_text_entries[rng].language.name;
+    while(lang !== 'en') {
+        rng = getRandomNum(speciesData.data.flavor_text_entries.length-1);
+        lang = speciesData.data.flavor_text_entries[rng].language.name;
     }
-    return speciesData.flavor_text_entries[rng].flavor_text;
+    return speciesData.data.flavor_text_entries[rng].flavor_text;
 };
 
 // Gets Types from JSON pokemon data
@@ -106,9 +100,10 @@ const getTypes = (data) => {
     }
     return typesString
 };
+
 // Helper function to capitalize text (e.g. when retrieving from JSON)
 const capitalizeText = (text) => {
-    if (typeof (text) === 'undefined') {
+    if(typeof(text) === 'undefined') {
         return 'N/A';
     }
     return text.charAt(0).toUpperCase() + text.slice(1);
